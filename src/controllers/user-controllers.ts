@@ -47,15 +47,14 @@ export const userSignup = async (
     const expires = new Date();
     expires.setDate(expires.getDate() + 7);
 
-    res.cookie(COOKIE_NAME, token, {
-      path: "/",
-      // domain: "localhost",           ← REMOVED (browser will use current domain)
-      expires,
-      httpOnly: true,
-      signed: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    });
+  const isProduction = process.env.NODE_ENV === "production";
+
+res.clearCookie(COOKIE_NAME, {
+  httpOnly: true,
+  path: "/",
+  secure: isProduction,                    // true in prod, false in local/dev
+  sameSite: isProduction ? "none" : "lax", // none only when secure=true
+});
 
     return res
       .status(201)
@@ -97,15 +96,14 @@ export const userLogin = async (
     const expires = new Date();
     expires.setDate(expires.getDate() + 7);
 
-    res.cookie(COOKIE_NAME, token, {
-      path: "/",
-      // domain: "localhost",           ← REMOVED
-      expires,
-      httpOnly: true,
-      signed: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    });
+const isProduction = process.env.NODE_ENV === "production";
+
+res.clearCookie(COOKIE_NAME, {
+  httpOnly: true,
+  path: "/",
+  secure: isProduction,                    // true in prod, false in local/dev
+  sameSite: isProduction ? "none" : "lax", // none only when secure=true
+});
 
     return res
       .status(200)
@@ -154,14 +152,14 @@ export const userLogout = async (
       return res.status(401).send("Permissions didn't match");
     }
 
-    res.clearCookie(COOKIE_NAME, {
-      httpOnly: true,
-      // domain: "localhost",           ← REMOVED
-      signed: true,
-      path: "/",
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    });
+const isProduction = process.env.NODE_ENV === "production";
+
+res.clearCookie(COOKIE_NAME, {
+  httpOnly: true,
+  path: "/",
+  secure: isProduction,                    // true in prod, false in local/dev
+  sameSite: isProduction ? "none" : "lax", // none only when secure=true
+});
 
     return res
       .status(200)
