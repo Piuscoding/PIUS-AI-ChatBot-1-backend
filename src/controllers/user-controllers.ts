@@ -4,13 +4,39 @@ import { hash, compare } from "bcrypt";
 import { createToken } from "../utils/token-manager.js";
 import { COOKIE_NAME } from "../utils/constants.js";
 
+// Helper for consistent cookie options
+const getCookieOptions = (isClear = false) => {
+  const isProd = process.env.NODE_ENV === "production";
+
+  const base = {
+    httpOnly: true,
+    path: "/",
+    signed: !isClear,
+  };
+
+  const sameSite = isProd ? "none" as const : "lax" as const;   // ← fixes the type error
+
+  if (isClear) {
+    return {
+      ...base,
+      secure: isProd,
+      sameSite,
+    };
+  }
+
+  return {
+    ...base,
+    secure: isProd,
+    sameSite,
+  };
+};
+
 export const getAllUsers = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    //get all users
     const users = await User.find();
     return res.status(200).json({ message: "OK", users });
   } catch (error: any) {
@@ -25,36 +51,24 @@ export const userSignup = async (
   next: NextFunction
 ) => {
   try {
-    //user signup
     const { name, email, password } = req.body;
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(401).send("User already registered");
+
     const hashedPassword = await hash(password, 10);
     const user = new User({ name, email, password: hashedPassword });
     await user.save();
 
-    // create token and store cookie
-    res.clearCookie(COOKIE_NAME, {
-      httpOnly: true,
-      // domain: "localhost",           ← REMOVED
-      signed: true,
-      path: "/",
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    });
+    res.clearCookie(COOKIE_NAME, getCookieOptions(true));
 
     const token = createToken(user._id.toString(), user.email, "7d");
     const expires = new Date();
     expires.setDate(expires.getDate() + 7);
 
-  const isProduction = process.env.NODE_ENV === "production";
-
-res.clearCookie(COOKIE_NAME, {
-  httpOnly: true,
-  path: "/",
-  secure: isProduction,                    // true in prod, false in local/dev
-  sameSite: isProduction ? "none" : "lax", // none only when secure=true
-});
+    res.cookie(COOKIE_NAME, token, {
+      ...getCookieOptions(),
+      expires,
+    });
 
     return res
       .status(201)
@@ -71,39 +85,27 @@ export const userLogin = async (
   next: NextFunction
 ) => {
   try {
-    //user login
     const { email, password } = req.body;
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).send("User not registered");
     }
+
     const isPasswordCorrect = await compare(password, user.password);
     if (!isPasswordCorrect) {
       return res.status(403).send("Incorrect Password");
     }
 
-    // create token and store cookie
-    res.clearCookie(COOKIE_NAME, {
-      httpOnly: true,
-      // domain: "localhost",           ← REMOVED
-      signed: true,
-      path: "/",
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    });
+    res.clearCookie(COOKIE_NAME, getCookieOptions(true));
 
     const token = createToken(user._id.toString(), user.email, "7d");
     const expires = new Date();
     expires.setDate(expires.getDate() + 7);
 
-const isProduction = process.env.NODE_ENV === "production";
-
-res.clearCookie(COOKIE_NAME, {
-  httpOnly: true,
-  path: "/",
-  secure: isProduction,                    // true in prod, false in local/dev
-  sameSite: isProduction ? "none" : "lax", // none only when secure=true
-});
+    res.cookie(COOKIE_NAME, token, {
+      ...getCookieOptions(),
+      expires,
+    });
 
     return res
       .status(200)
@@ -120,7 +122,6 @@ export const verifyUser = async (
   next: NextFunction
 ) => {
   try {
-    //user token check
     const user = await User.findById(res.locals.jwtData.id);
     if (!user) {
       return res.status(401).send("User not registered OR Token malfunctioned");
@@ -143,7 +144,6 @@ export const userLogout = async (
   next: NextFunction
 ) => {
   try {
-    //user token check
     const user = await User.findById(res.locals.jwtData.id);
     if (!user) {
       return res.status(401).send("User not registered OR Token malfunctioned");
@@ -152,14 +152,7 @@ export const userLogout = async (
       return res.status(401).send("Permissions didn't match");
     }
 
-const isProduction = process.env.NODE_ENV === "production";
-
-res.clearCookie(COOKIE_NAME, {
-  httpOnly: true,
-  path: "/",
-  secure: isProduction,                    // true in prod, false in local/dev
-  sameSite: isProduction ? "none" : "lax", // none only when secure=true
-});
+    res.clearCookie(COOKIE_NAME, getCookieOptions(true));
 
     return res
       .status(200)
