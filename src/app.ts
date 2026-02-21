@@ -24,38 +24,12 @@ app.set("trust proxy", 1);   // ← added (helps Render / proxies detect HTTPS c
 
 
 
-// app.use(
-//   cors({
-//     origin: (origin, callback) => {
-//       const allowedOrigins: string[] = [
-//         "http://localhost:5173",
-//       ];
-
-//       const clientUrl = process.env.CLIENT_URL?.trim();
-//       if (clientUrl && clientUrl.length > 0) {
-//         allowedOrigins.push(clientUrl);
-//       }
-
-//       // Allow requests with no origin (Postman, curl, mobile apps, etc.)
-//       if (!origin) return callback(null, true);
-
-//       if (allowedOrigins.includes(origin)) {
-//         callback(null, true);
-//       } else {
-//         callback(new Error("Not allowed by CORS"));
-//       }
-//     },
-//     credentials: true,
-//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-//     allowedHeaders: ["Content-Type", "Authorization"],
-//   })
-// );
-
 app.use(cors({
-  origin: process.env.CLIENT_URL,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
+  origin: true,                     // reflect requesting origin
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 }));
-
 app.use(express.json());
 app.use(cookieParser(process.env.COOKIE_SECRET));
 
