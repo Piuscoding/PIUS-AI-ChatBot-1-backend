@@ -25,9 +25,7 @@ app.set("trust proxy", 1);
 app.use(
   cors({
     origin: [
-      "http://localhost:5173",                    // local development
-      "http://localhost:3000",                    // optional
-      "https://pius-ai-chatbot-1-frontend.onrender.com",   // ← CHANGE THIS TO YOUR ACTUAL DEPLOYED FRONTEND URL
+      "https://pius-ai-chatbot-1-frontend.onrender.com",   // ← YOUR ACTUAL FRONTEND URL
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],

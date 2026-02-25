@@ -4,36 +4,27 @@ import { hash, compare } from "bcrypt";
 import { createToken } from "../utils/token-manager.js";
 import { COOKIE_NAME } from "../utils/constants.js";
 
-// Helper for consistent cookie options - FIXED for cross-origin compatibility
+// Simplified cookie options - FIXED for cross-domain (Render)
 const getCookieOptions = (isClear = false) => {
-  const isProd = process.env.NODE_ENV === "production";
-
-  // TEMPORARY: Use lax + secure:false so cookie works from localhost and deployed frontend
-  // Change to true when your frontend is deployed to HTTPS and everything is stable
-  const forceDevMode = true;
-
-  const effectiveProd = forceDevMode ? false : isProd;
-
   const base = {
     httpOnly: true,
     path: "/",
     signed: !isClear,
   };
 
-  const sameSite = effectiveProd ? "none" as const : "lax" as const;
-
+  // Using "lax" + secure:false works reliably for both local and deployed
   if (isClear) {
     return {
       ...base,
-      secure: effectiveProd,
-      sameSite,
+      secure: false,
+      sameSite: "lax" as const,
     };
   }
 
   return {
     ...base,
-    secure: effectiveProd,
-    sameSite,
+    secure: false,
+    sameSite: "lax" as const,
   };
 };
 
