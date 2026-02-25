@@ -10,7 +10,7 @@ const getCookieOptions = (isClear = false) => {
         path: "/",
         signed: !isClear,
     };
-    const sameSite = isProd ? "none" : "lax"; // ← fixes the type error
+    const sameSite = isProd ? "none" : "lax";
     if (isClear) {
         return {
             ...base,

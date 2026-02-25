@@ -14,7 +14,7 @@ const getCookieOptions = (isClear = false) => {
     signed: !isClear,
   };
 
-  const sameSite = isProd ? "none" as const : "lax" as const;   // ← fixes the type error
+  const sameSite = isProd ? "none" as const : "lax" as const;
 
   if (isClear) {
     return {
